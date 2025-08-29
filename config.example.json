@@ -1,0 +1,14 @@
+{
+  "irc": {
+    "server": "irc.libera.chat",
+    "port": 6697,
+    "channel": "#meshtastic",
+    "nickname": "meshtastic-bridge",
+    "username": "meshtastic",
+    "realname": "Meshtastic IRC Bridge",
+    "use_tls": true
+  },
+  "meshtastic": {
+    "channel": 0
+  }
+}
