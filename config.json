@@ -1,0 +1,14 @@
+{
+  "irc": {
+    "server": "us.manero.org",
+    "port": 6697,
+    "use_tls": true,
+    "channel": "#rick",
+    "nickname": "julian",
+    "username": "julian",
+    "realname": "Meshtastic IRC Bridge"
+  },
+  "meshtastic": {
+    "channel": 1
+  }
+}

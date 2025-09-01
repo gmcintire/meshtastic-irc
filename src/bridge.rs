@@ -5,6 +5,7 @@ use tokio::sync::mpsc;
 use crate::config::Config;
 use crate::irc_handler::{IrcHandler, IrcMessage};
 use crate::meshtastic_handler::MeshtasticHandler;
+use crate::mqtt_handler::MqttHandler;
 
 pub struct Bridge {
     config: Config,
@@ -43,22 +44,42 @@ impl Bridge {
             }
         });
 
-        // Spawn Meshtastic handler initialization
-        let mesh_handle = tokio::spawn(async move {
-            info!("Initializing Meshtastic connection...");
-            match MeshtasticHandler::new(&meshtastic_config).await {
-                Ok(handler) => {
-                    info!("Meshtastic handler initialized successfully");
-                    info!("Starting Meshtastic message handler loop");
-                    if let Err(e) = handler.run(irc_to_mesh_rx, mesh_to_irc_tx).await {
-                        error!("Meshtastic handler error: {}", e);
+        // Spawn Meshtastic handler initialization (either serial or MQTT)
+        let mesh_handle = if let Some(mqtt_config) = &meshtastic_config.mqtt {
+            let mqtt_config = mqtt_config.clone();
+            let channel = meshtastic_config.channel;
+            tokio::spawn(async move {
+                info!("Initializing MQTT connection...");
+                match MqttHandler::new(&mqtt_config, channel).await {
+                    Ok(handler) => {
+                        info!("MQTT handler initialized successfully");
+                        info!("Starting MQTT message handler loop");
+                        if let Err(e) = handler.run(irc_to_mesh_rx, mesh_to_irc_tx).await {
+                            error!("MQTT handler error: {}", e);
+                        }
+                    }
+                    Err(e) => {
+                        error!("Failed to initialize MQTT handler: {}", e);
                     }
                 }
-                Err(e) => {
-                    error!("Failed to initialize Meshtastic handler: {}", e);
+            })
+        } else {
+            tokio::spawn(async move {
+                info!("Initializing Meshtastic serial connection...");
+                match MeshtasticHandler::new(&meshtastic_config).await {
+                    Ok(handler) => {
+                        info!("Meshtastic handler initialized successfully");
+                        info!("Starting Meshtastic message handler loop");
+                        if let Err(e) = handler.run(irc_to_mesh_rx, mesh_to_irc_tx).await {
+                            error!("Meshtastic handler error: {}", e);
+                        }
+                    }
+                    Err(e) => {
+                        error!("Failed to initialize Meshtastic handler: {}", e);
+                    }
                 }
-            }
-        });
+            })
+        };
 
         info!("Bridge is running! Waiting for both connections to establish...");
 

@@ -4,17 +4,21 @@ A bridge between Meshtastic mesh network and IRC (Internet Relay Chat), allowing
 
 ## Features
 
-- Connects to Meshtastic devices via USB serial port
+- Connects to Meshtastic devices via USB serial port or MQTT
 - Auto-detects Meshtastic serial port on macOS and Linux
 - Connects to IRC servers with TLS/SSL support
 - Bidirectional message relay between Meshtastic and IRC
 - Configurable via JSON file or command-line arguments
 - Channel filtering for both networks
+- Shows Meshtastic node short names instead of raw IDs
+- Acknowledges received Meshtastic messages when requested
 
 ## Requirements
 
 - Rust 1.70 or later
-- A Meshtastic device connected via USB
+- Either:
+  - A Meshtastic device connected via USB, or
+  - Access to an MQTT broker with Meshtastic messages
 - Internet connection for IRC server access
 
 ## Installation
@@ -35,7 +39,9 @@ Create a configuration file based on the example:
 cp config.example.json config.json
 ```
 
-Edit `config.json` with your settings:
+Edit `config.json` with your settings. See `config.example.jsonc` for a fully commented version with all available options.
+
+### Serial/USB connection example:
 
 ```json
 {
@@ -44,8 +50,6 @@ Edit `config.json` with your settings:
     "port": 6697,
     "channel": "#meshtastic",
     "nickname": "meshtastic-bridge",
-    "username": "meshtastic",
-    "realname": "Meshtastic IRC Bridge",
     "use_tls": true
   },
   "meshtastic": {
@@ -54,6 +58,30 @@ Edit `config.json` with your settings:
   }
 }
 ```
+
+### MQTT connection example:
+
+```json
+{
+  "irc": {
+    "server": "irc.libera.chat",
+    "port": 6697,
+    "channel": "#meshtastic",
+    "nickname": "mesh-bridge",
+    "use_tls": true
+  },
+  "meshtastic": {
+    "mqtt": {
+      "broker_address": "mqtt.meshtastic.org",
+      "port": 1883,
+      "topic": "meshtastic/2/e/#"
+    },
+    "channel": 0
+  }
+}
+```
+
+Note: Choose either `serial_port` OR `mqtt` configuration, not both. If neither is specified, the bridge will attempt to auto-detect a connected Meshtastic device.
 
 ## Usage
 
@@ -84,6 +112,15 @@ cargo run
   --meshtastic-channel 0
 ```
 
+### Using MQTT instead of serial:
+
+```bash
+./target/release/meshtastic-irc \
+  --mqtt-broker mqtt.meshtastic.org \
+  --mqtt-port 1883 \
+  --mqtt-topic "meshtastic/2/e/#"
+```
+
 ### Available command-line options:
 
 - `--config <FILE>`: Configuration file path (default: config.json)
@@ -94,13 +131,21 @@ cargo run
 - `--irc-tls <true|false>`: Use TLS/SSL for IRC connection
 - `--serial-port <PORT>`: Meshtastic serial port (auto-detected if not specified)
 - `--meshtastic-channel <CHANNEL>`: Meshtastic channel number (default: 0)
+- `--mqtt-broker <ADDRESS>`: MQTT broker address
+- `--mqtt-port <PORT>`: MQTT broker port (default: 1883)
+- `--mqtt-topic <TOPIC>`: MQTT topic to subscribe to
+- `--mqtt-username <USERNAME>`: MQTT username (optional)
+- `--mqtt-password <PASSWORD>`: MQTT password (optional)
+- `--list-ports`: List available serial ports and exit
 
 ## How it works
 
-1. The bridge connects to both the Meshtastic device and IRC server
-2. Messages from Meshtastic are forwarded to IRC with `[mesh-XXXXXXXX]:` prefix
+1. The bridge connects to both the Meshtastic network (via serial or MQTT) and IRC server
+2. Messages from Meshtastic are forwarded to IRC with `[mesh-nodename]:` prefix (or `[mesh-XXXXXXXX]:` if name unknown)
 3. Messages from IRC are forwarded to Meshtastic with `[IRC-nickname]` prefix
 4. Only text messages on the configured channels are relayed
+5. The bridge discovers and uses Meshtastic node short names as they appear
+6. Received Meshtastic messages are acknowledged if the sender requests it
 
 ## Notes
 

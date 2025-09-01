@@ -23,7 +23,19 @@ pub struct IrcConfig {
 pub struct MeshtasticConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub serial_port: Option<PathBuf>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mqtt: Option<MqttConfig>,
     pub channel: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MqttConfig {
+    pub broker_address: String,
+    pub port: u16,
+    pub topic: String,
+    pub username: Option<String>,
+    pub password: Option<String>,
+    pub client_id: Option<String>,
 }
 
 impl Default for Config {
@@ -41,6 +53,7 @@ impl Default for Config {
             },
             meshtastic: MeshtasticConfig {
                 serial_port: None, // Will be auto-detected
+                mqtt: None,
                 channel: 0,
             },
         }

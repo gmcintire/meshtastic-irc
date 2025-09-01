@@ -6,9 +6,11 @@
     "nickname": "meshtastic-bridge",
     "username": "meshtastic",
     "realname": "Meshtastic IRC Bridge",
+    "password": null,
     "use_tls": true
   },
   "meshtastic": {
+    "serial_port": "/dev/ttyUSB0",
     "channel": 0
   }
 }

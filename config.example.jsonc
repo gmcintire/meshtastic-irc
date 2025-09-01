@@ -1,0 +1,67 @@
+// Meshtastic-IRC Bridge Configuration Example
+// Copy this file to config.json and modify as needed
+// Note: Remove all comments when copying to config.json as JSON doesn't support comments
+
+{
+  "irc": {
+    // IRC server address
+    "server": "irc.libera.chat",
+    
+    // IRC server port (6697 for TLS, 6667 for non-TLS)
+    "port": 6697,
+    
+    // IRC channel to join (must include # prefix)
+    "channel": "#meshtastic",
+    
+    // IRC nickname for the bridge
+    "nickname": "meshtastic-bridge",
+    
+    // Optional: IRC username (defaults to nickname if not set)
+    "username": "meshtastic",
+    
+    // Optional: IRC realname
+    "realname": "Meshtastic IRC Bridge",
+    
+    // Optional: IRC server password (for authenticated servers)
+    "password": null,
+    
+    // Use TLS/SSL for IRC connection
+    "use_tls": true
+  },
+  
+  "meshtastic": {
+    // Choose ONE of the following connection methods:
+    
+    // Option 1: Serial/USB Connection
+    // Set to null or omit entirely to auto-detect serial port
+    "serial_port": "/dev/ttyUSB0",
+    
+    // Option 2: MQTT Connection (remove serial_port above if using this)
+    // Uncomment the mqtt section below and remove/comment serial_port
+    /*
+    "mqtt": {
+      // MQTT broker address
+      "broker_address": "mqtt.meshtastic.org",
+      
+      // MQTT broker port (typically 1883 for non-TLS, 8883 for TLS)
+      "port": 1883,
+      
+      // MQTT topic to subscribe to
+      // Default Meshtastic topic pattern: meshtastic/2/e/#
+      "topic": "meshtastic/2/e/#",
+      
+      // Optional: MQTT username (for authenticated brokers)
+      "username": null,
+      
+      // Optional: MQTT password (for authenticated brokers)
+      "password": null,
+      
+      // Optional: MQTT client ID (auto-generated if not specified)
+      "client_id": null
+    },
+    */
+    
+    // Meshtastic channel index (0-7)
+    "channel": 0
+  }
+}
